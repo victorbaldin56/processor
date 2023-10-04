@@ -21,9 +21,9 @@ BUILD_DIR = ./build
 SRC_DIRS = ./src
 SRC = $(wildcard $(SRC_DIRS)/*.cpp)
 OBJS := $(SRC:%.cpp=$(BUILD_DIR)/%.cpp.o)
-INCLUDE_DIR = ~/Dev/Stack/src/
-LIB = stack.a
-L_DIR = ~/Dev/Stack/build/src/
+INCLUDE_DIR = ~/Dev/Stack/src/  # to be changed
+LIB = stack.a 					# to be changed
+L_DIR = ~/Dev/Stack/build/src/	# to be changed
 
 EXEC = processor
 
