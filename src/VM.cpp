@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <math.h>
 #include <signal.h>
+#include "../include/read_bin.h"
+#include <stdlib.h>
 
 #define SIGN(x) ((x > 0) - (x < 0))
 
@@ -25,98 +27,131 @@ static const double EPS = 1e-7;    ///< floating point comparizon precision
 static int cmp_double(const double a, const double b, const double eps);
 
 // executes a command by code
-static int cmd_exec(const char *cmd, Stack *stk);
+static int cmd_exec(const unsigned char *opcode, Stack *stk, double reg[]);
+
+static void vm_run(Code *code_array);
 
 void VM_Proc(FILE *input_file) {
     assert(input_file);
 
-    Stack stk = {};
-    StackCtor(&stk);
+    Code code_array = {};
+    read_bin(input_file, &code_array);
+    vm_run(&code_array);
 
-    char cmd[MAXLEN] = {};
-
-    while (fgets(cmd, MAXLEN, input_file)) {
-        if (cmd_exec(cmd, &stk)) {
-            StackDtor(&stk);
-            return;
-        }
-    }
-
-    StackDtor(&stk);
     return;
 }
 
-static int cmd_exec(const char *cmd, Stack *stk) {
-    assert(cmd);
-    assert(stk);
+static void vm_run(Code *code_array) {
+    assert(code_array);
+    assert(code_array->code);
 
-    int cmd_code = 0;
+    Stack stk = {};
+    StackCtor(&stk);
 
-    if (sscanf(cmd, "%d", &cmd_code) <= 0) {
-        fprintf(stderr, "Unknown command\n");
-        abort();
+    double reg[NUM_REGS] = {};
+
+    for (size_t ip = 0; ip < code_array->size; ip++) {
+        int nargs = cmd_exec(code_array->code + ip, &stk, reg);
+
+        if (nargs == -1) {
+            StackDtor(&stk);
+            return;
+        }
+
+        ip += nargs;
     }
 
-    double a = 0, b = 0;
+    StackDtor(&stk);
+    free(code_array->code);
+    return;
+}
 
-    switch (cmd_code) {
+static int cmd_exec(const unsigned char *opcode, Stack *stk, double reg[]) {
+    assert(stk);
+    assert(reg);
+    assert(opcode);
+
+    double arg1 = 0, arg2 = 0;
+
+    ON_DEBUG(printf("opcode = %hhx\n", *opcode & 15));
+    switch (*opcode & 15) {
         // hlt
         case -1:
             return -1;
         // in
         case 0:
-            scanf("%lf", &a);
-            PUSH(stk, a);
+            scanf("%lf", &arg1);
+            PUSH(stk, arg1);
             break;
         // out
         case 1:
-            POP(stk, &a);
-            printf("%lf\n", a);
+            POP(stk, &arg1);
+            printf("%lf\n", arg1);
             break;
         // push
         case 2:
-            sscanf(cmd, "%*s %lf", &a);
-            PUSH(stk, a);
+            // push constant
+            if (*opcode & 0x10) {
+                PUSH(stk, *((double *)(opcode + 1)));
+            }
+
+            // push from register
+            if (*opcode & 0x20) {
+                PUSH(stk, reg[*(opcode + 1)]);
+            }
+
+            return 1;
+
             break;
         // add
         case 3:
-            POP(stk, &a);
-            POP(stk, &b);
-            PUSH(stk, a + b);
+            POP(stk, &arg1);
+            POP(stk, &arg2);
+            PUSH(stk, arg1 + arg2);
             break;
         // sub
         case 4:
-            POP(stk, &a);
-            POP(stk, &b);
-            PUSH(stk, b - a);
+            POP(stk, &arg1);
+            POP(stk, &arg2);
+            PUSH(stk, arg2 - arg1);
             break;
         // mult
         case 5:
-            POP(stk, &a);
-            POP(stk, &b);
-            PUSH(stk, a * b);
+            POP(stk, &arg1);
+            POP(stk, &arg2);
+            PUSH(stk, arg1 * arg2);
             break;
         // div
         case 6:
-            POP(stk, &a);
-            POP(stk, &b);
+            POP(stk, &arg1);
+            POP(stk, &arg2);
 
-            if (!cmp_double(a, 0, EPS)) {
+            if (!cmp_double(arg1, 0, EPS)) {
                 raise(SIGFPE);
             }
 
-            PUSH(stk, b / a);
+            PUSH(stk, arg2 / arg1);
             break;
         // sqrt
         case 7:
-            POP(stk, &a);
+            POP(stk, &arg1);
 
-            if (a < 0) {
+            if (arg1 < 0) {
                 raise(SIGFPE);
             }
 
-            PUSH(stk, sqrt(a));
+            PUSH(stk, sqrt(arg1));
             break;
+        // pop
+        case 8:
+            if (!(*opcode & 0x8)) {
+                fprintf(stderr, "No register for pop\n");
+                abort();
+            }
+
+            POP(stk, reg + *(opcode + 1));
+            return 1;
+
         // default
         default:
             fprintf(stderr, "Unknown command\n");

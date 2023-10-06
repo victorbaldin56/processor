@@ -22,13 +22,13 @@ SRC_DIRS = ./src
 SRC = $(wildcard $(SRC_DIRS)/*.cpp)
 OBJS := $(SRC:%.cpp=$(BUILD_DIR)/%.cpp.o)
 INCLUDE_DIR = ~/Dev/Stack/src/  # to be changed
-LIB = stack.a 					# to be changed
-L_DIR = ~/Dev/Stack/build/src/	# to be changed
+# LIB = stack.a 					# to be changed
+L_DIR = ~/Dev/Stack/build/src/stack.a	# to be changed
 
 EXEC = processor
 
 $(BUILD_DIR)/$(EXEC): $(OBJS)
-	@$(CC) $(OBJS) $(L_DIR)/$(LIB) $(FLAGS) -o $@ -I $(INCLUDE_DIR)
+	@$(CC) $(OBJS) $(L_DIR) $(FLAGS) -o $@ -I $(INCLUDE_DIR)
 
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	@mkdir -p $(BUILD_DIR)

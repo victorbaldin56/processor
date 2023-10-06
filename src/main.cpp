@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    FILE *input_file = fopen(argv[1], "r"); // open a file with bytecode
+    FILE *input_file = fopen(argv[1], "rb"); // open a file with bytecode
 
     if (!input_file) {
         perror("VM_CPU");
@@ -18,9 +18,6 @@ int main(int argc, char *argv[]) {
     }
 
     VM_Proc(input_file);
-
-    fclose(input_file);
-    input_file = NULL;
 
     return 0;
 }
