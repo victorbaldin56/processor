@@ -41,4 +41,4 @@ clean:
 	@rm -rf $(BUILD_DIR)
 
 run:
-	@./$(BUILD_DIR)/$(EXEC)
+	@./$(BUILD_DIR)/$(EXEC) tests/test.bin

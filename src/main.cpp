@@ -10,14 +10,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    FILE *input_file = fopen(argv[1], "rb"); // open a file with bytecode
-
-    if (!input_file) {
-        perror("VM_CPU");
-        return -1;
-    }
-
-    VM_Proc(input_file);
+    VM_Proc(argv[1]);
 
     return 0;
 }

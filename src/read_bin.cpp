@@ -2,34 +2,52 @@
 #include "../include/VM.h"
 #include <stdlib.h>
 #include <assert.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+typedef struct stat Stat;
 
 #ifdef DEBUG
 static void print_Code(const Code *code_array);
 #endif
 
-Code *read_bin(FILE *input_file, Code *code_array) {
-    assert(input_file);
+static ssize_t fsize(char *filename);
 
-    code_array->size = 0; ///< size of code array
+Code *read_bin(char *filename, Code *code_array) {
+    assert(filename);
 
-    while (fscanf(input_file, "%*s") != EOF) {
-        code_array->size++;
+	code_array->size = fsize(filename) / sizeof(double);
+
+	if (code_array->size == -1) {
+		return NULL;
     }
 
-    rewind(input_file);
+    code_array->code = (double *)calloc(code_array->size, sizeof(double));
 
-    code_array->code = (unsigned char *)calloc(code_array->size, 1);
+	int fd = open(filename, O_RDONLY, 0);
 
-    for (size_t i = 0; i < code_array->size; i++) {
-        fscanf(input_file, "%hhx", code_array->code + i);
+    for (ssize_t i = 0; i < code_array->size; i++) {
+        read(fd, (char *)(code_array->code + i), sizeof(double));
     }
 
     ON_DEBUG(printf("read_bin: parsed\n"));
     ON_DEBUG(print_Code(code_array));
 
-    fclose(input_file);
+    close(fd);
 
     return code_array;
+}
+
+static ssize_t fsize(char *filename) {
+    assert(filename);
+
+    Stat st = {};
+    if (stat(filename, &st) == -1) {
+		return -1;
+    }
+
+    return st.st_size;
 }
 
 #ifdef DEBUG
@@ -40,7 +58,11 @@ static void print_Code(const Code *code_array) {
     printf("size = %zu\n", code_array->size);
 
     for (size_t i = 0; i < code_array->size; i++) {
-        printf("%hhx ", code_array->code[i]);
+        for (size_t j = 0; j < sizeof(double); j++) {
+            printf("%hhx ", ((char *)(code_array->code + i))[j]);
+        }
+
+        putchar('\n');
     }
 
     putchar('\n');
