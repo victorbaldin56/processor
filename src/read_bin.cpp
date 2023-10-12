@@ -25,6 +25,10 @@ Code *read_bin(char *filename, Code *code_array) {
 
     code_array->code = (double *)calloc(code_array->size, sizeof(double));
 
+    if (!code_array->code) {
+        return NULL;
+    }
+
 	int fd = open(filename, O_RDONLY, 0);
 
     for (ssize_t i = 0; i < code_array->size; i++) {

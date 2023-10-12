@@ -27,7 +27,7 @@ static const double EPS = 1e-7;    ///< floating point comparizon precision
 static int cmp_double(const double a, const double b, const double eps);
 
 /// @brief executes a command by code
-static int cmd_exec(const double *opcode, Stack *stk, double reg[]);
+static int cmd_exec(const double *code, ssize_t ip, Stack *stk, double reg[]);
 
 static void vm_run(Code *code_array);
 
@@ -51,7 +51,7 @@ static void vm_run(Code *code_array) {
     double reg[NUM_REGS] = {};
 
     for (ssize_t ip = 0; ip < code_array->size; ip++) {
-        int nargs = cmd_exec(code_array->code + ip, &stk, reg);
+        int nargs = cmd_exec(code_array->code, ip, &stk, reg);
 
         if (nargs == -1) {
             free(code_array->code);
@@ -67,16 +67,18 @@ static void vm_run(Code *code_array) {
     return;
 }
 
-static int cmd_exec(const double *opcode, Stack *stk, double reg[]) {
-    assert(stk);
+static int cmd_exec(const double *code, ssize_t ip, Stack *stk, double reg[]) {
+    assert(code);
     assert(reg);
-    assert(opcode);
+    STACK_ASS(stk);
+    assert(ip >= 0);
 
     double arg1 = 0, arg2 = 0;
+    char *opcodeptr = (char *)(code + ip);
 
-    ON_DEBUG(printf("*opcode = %hhx\n", *(char *)opcode & CMD));
+    ON_DEBUG(printf("*opcode = %hhx\n", *(char *)opcodeptr & CMD));
 
-    switch (*(char *)opcode & CMD) {
+    switch (*opcodeptr & CMD) {
         case HALT:
             return -1;
 
@@ -92,13 +94,13 @@ static int cmd_exec(const double *opcode, Stack *stk, double reg[]) {
 
         case PUSH:
             // push constant
-            if (*(char *)opcode & IMM) {
-                Push_(stk, opcode[1]);
+            if (*opcodeptr & IMM) {
+                Push_(stk, code[ip + 1]);
             }
 
             // push from register
-            if (*(char *)opcode & REG) {
-                Push_(stk, reg[*(char *)(opcode + 1)]);
+            if (*opcodeptr & REG) {
+                Push_(stk, reg[*(char *)(code + ip + 1)]);
             }
 
             return 1;
@@ -145,12 +147,12 @@ static int cmd_exec(const double *opcode, Stack *stk, double reg[]) {
         case POP:
             // ON_DEBUG(StackDump(stk, STACK_OK, __FILE__, __LINE__));
 
-            if (!(*(char *)opcode & REG)) {
+            if (!(*opcodeptr & REG)) {
                 fprintf(stderr, "No register for pop\n");
                 abort();
             }
 
-            char reg_num = *(char *)(opcode + 1);
+            char reg_num = *(char *)(code + ip + 1);
             ON_DEBUG(printf("reg_num = %zu\n", reg_num));
             Pop_(stk, reg + reg_num);
             return 1;
