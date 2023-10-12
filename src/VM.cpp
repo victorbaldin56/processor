@@ -74,11 +74,11 @@ static int cmd_exec(const double *code, ssize_t ip, Stack *stk, double reg[]) {
     assert(ip >= 0);
 
     double arg1 = 0, arg2 = 0;
-    char *opcodeptr = (char *)(code + ip);
+    char opcode = *(char *)(code + ip);
 
-    ON_DEBUG(printf("*opcode = %hhx\n", *(char *)opcodeptr & CMD));
+    ON_DEBUG(printf("*opcode = %hhx\n", opcode & CMD));
 
-    switch (*opcodeptr & CMD) {
+    switch (opcode & CMD) {
         case HALT:
             return -1;
 
@@ -94,12 +94,12 @@ static int cmd_exec(const double *code, ssize_t ip, Stack *stk, double reg[]) {
 
         case PUSH:
             // push constant
-            if (*opcodeptr & IMM) {
+            if (opcode & IMM) {
                 Push_(stk, code[ip + 1]);
             }
 
             // push from register
-            if (*opcodeptr & REG) {
+            if (opcode & REG) {
                 Push_(stk, reg[*(char *)(code + ip + 1)]);
             }
 
@@ -147,13 +147,15 @@ static int cmd_exec(const double *code, ssize_t ip, Stack *stk, double reg[]) {
         case POP:
             // ON_DEBUG(StackDump(stk, STACK_OK, __FILE__, __LINE__));
 
-            if (!(*opcodeptr & REG)) {
+            if (!(opcode & REG)) {
                 fprintf(stderr, "No register for pop\n");
                 abort();
             }
 
             char reg_num = *(char *)(code + ip + 1);
+
             ON_DEBUG(printf("reg_num = %zu\n", reg_num));
+
             Pop_(stk, reg + reg_num);
             return 1;
             break;
