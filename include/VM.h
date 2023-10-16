@@ -2,6 +2,7 @@
 #define VM
 
 #include <stdio.h>
+#include "stack.h"
 
 #define DEBUG
 
@@ -36,6 +37,15 @@ typedef struct {
     double *code;
     ssize_t size;
 } Code;
+
+typedef struct {
+	Stack stack;
+	double regs[NUM_REGS] = {};
+} CPU;
+
+CPU *CPU_Ctor(CPU *cpu);
+
+void CPU_Dtor(CPU *cpu);
 
 void VM_Proc(char *filename);
 

@@ -27,7 +27,7 @@ static const double EPS = 1e-7;    ///< floating point comparizon precision
 static int cmp_double(const double a, const double b, const double eps);
 
 /// @brief executes a command by code
-static int cmd_exec(const double *code, ssize_t ip, Stack *stk, double reg[]);
+static int cmd_exec(const double *code, ssize_t ip, CPU *cpu);
 
 static void vm_run(Code *code_array);
 
@@ -45,32 +45,28 @@ static void vm_run(Code *code_array) {
     assert(code_array);
     assert(code_array->code);
 
-    Stack stk = {};
-    StackCtor(&stk);
-
-    double reg[NUM_REGS] = {};
+    CPU cpu = {};
+    CPU_Ctor(&cpu);
 
     for (ssize_t ip = 0; ip < code_array->size; ip++) {
-        int nargs = cmd_exec(code_array->code, ip, &stk, reg);
+        int nargs = cmd_exec(code_array->code, ip, &cpu);
 
         if (nargs == -1) {
-            free(code_array->code);
-            StackDtor(&stk);
-            return;
+            break;
         }
 
         ip += nargs;
     }
 
-    StackDtor(&stk);
+    CPU_Dtor(&cpu);
     free(code_array->code);
     return;
 }
 
-static int cmd_exec(const double *code, ssize_t ip, Stack *stk, double reg[]) {
-    assert(code);
-    assert(reg);
-    STACK_ASS(stk);
+static int cmd_exec(const double *code, ssize_t ip, CPU *cpu) {
+    assert(cpu);
+    assert(cpu->regs);
+    STACK_ASS(&cpu->stack);
     assert(ip >= 0);
 
     double arg1 = 0, arg2 = 0;
@@ -84,64 +80,64 @@ static int cmd_exec(const double *code, ssize_t ip, Stack *stk, double reg[]) {
 
         case IN:
             scanf("%lf", &arg1);
-            Push_(stk, arg1);
+            Push_(&cpu->stack, arg1);
             break;
 
         case OUT:
-            Pop_(stk, &arg1);
+            Pop_(&cpu->stack, &arg1);
             printf("%lf\n", arg1);
             break;
 
         case PUSH:
             // push constant
             if (opcode & IMM) {
-                Push_(stk, code[ip + 1]);
+                Push_(&cpu->stack, code[ip + 1]);
             }
 
             // push from register
             if (opcode & REG) {
-                Push_(stk, reg[*(char *)(code + ip + 1)]);
+                Push_(&cpu->stack, cpu->regs[*(char *)(code + ip + 1)]);
             }
 
             return 1;
 
         case ADD:
-            Pop_(stk, &arg1);
-            Pop_(stk, &arg2);
-            Push_(stk, arg1 + arg2);
+            Pop_(&cpu->stack, &arg1);
+            Pop_(&cpu->stack, &arg2);
+            Push_(&cpu->stack, arg1 + arg2);
             break;
 
         case SUB:
-            Pop_(stk, &arg1);
-            Pop_(stk, &arg2);
-            Push_(stk, arg2 - arg1);
+            Pop_(&cpu->stack, &arg1);
+            Pop_(&cpu->stack, &arg2);
+            Push_(&cpu->stack, arg2 - arg1);
             break;
 
         case MULT:
-            Pop_(stk, &arg1);
-            Pop_(stk, &arg2);
-            Push_(stk, arg1 * arg2);
+            Pop_(&cpu->stack, &arg1);
+            Pop_(&cpu->stack, &arg2);
+            Push_(&cpu->stack, arg1 * arg2);
             break;
 
         case DIV:
-            Pop_(stk, &arg1);
-            Pop_(stk, &arg2);
+            Pop_(&cpu->stack, &arg1);
+            Pop_(&cpu->stack, &arg2);
 
             if (!cmp_double(arg1, 0, EPS)) {
                 raise(SIGFPE);
             }
 
-            Push_(stk, arg2 / arg1);
+            Push_(&cpu->stack, arg2 / arg1);
             break;
 
         case SQRT:
-            Pop_(stk, &arg1);
+            Pop_(&cpu->stack, &arg1);
 
             if (arg1 < 0) {
                 raise(SIGFPE);
             }
 
-            Push_(stk, sqrt(arg1));
+            Push_(&cpu->stack, sqrt(arg1));
             break;
 
         case POP:
@@ -156,7 +152,7 @@ static int cmd_exec(const double *code, ssize_t ip, Stack *stk, double reg[]) {
 
             ON_DEBUG(printf("reg_num = %zu\n", reg_num));
 
-            Pop_(stk, reg + reg_num);
+            Pop_(&cpu->stack, cpu->regs + reg_num);
             return 1;
             break;
 
