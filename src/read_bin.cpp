@@ -17,13 +17,13 @@ static ssize_t fsize(char *filename);
 Code *read_bin(char *filename, Code *code_array) {
     assert(filename);
 
-	code_array->size = fsize(filename) / sizeof(double);
+	code_array->size = fsize(filename) / (ssize_t)sizeof(double);
 
 	if (code_array->size == -1) {
 		return NULL;
     }
 
-    code_array->code = (double *)calloc(code_array->size, sizeof(double));
+    code_array->code = (double *)calloc((size_t)code_array->size, sizeof(double));
 
     if (!code_array->code) {
         return NULL;
@@ -59,9 +59,9 @@ static void print_Code(const Code *code_array) {
     assert(code_array);
     assert(code_array->code);
 
-    printf("size = %zu\n", code_array->size);
+    printf("size = %zd\n", code_array->size);
 
-    for (size_t i = 0; i < code_array->size; i++) {
+    for (ssize_t i = 0; i < code_array->size; i++) {
         for (size_t j = 0; j < sizeof(double); j++) {
             printf("%hhx ", ((char *)(code_array->code + i))[j]);
         }

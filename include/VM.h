@@ -25,12 +25,19 @@ enum Commands {
 	DIV  = 0x06,
 	SQRT = 0x07,
 	POP  = 0x08,
+	JMP  = 0x09,
+	JA   = 0x0A,
+	JB   = 0x0B,
+	JE   = 0x0C,
+	JAE  = 0x0D,
+	JBE  = 0x0E,
 };
 
-enum Flags {
+enum Masks {
     CMD = 0x0F,
-    IMM = 0x10,
-    REG = 0x20,
+    IMM = 0x20,
+    REG = 0x30,
+	RAM = 0x40,
 };
 
 typedef struct {
