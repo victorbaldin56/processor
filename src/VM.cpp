@@ -44,8 +44,7 @@ void VM_Proc(char *filename) {
     Code code_array = {};
     read_bin(filename, &code_array);
     vm_run(&code_array);
-
-    return;
+    CodeDtor(&code_array);
 }
 
 static void vm_run(const Code *code_array) {
@@ -56,11 +55,10 @@ static void vm_run(const Code *code_array) {
     CPU_Ctor(&cpu);
 
     for (ssize_t ip = 0; ip < code_array->size; ip++) {
-        cmd_exec(code_array, &ip, &cpu);
+        if (cmd_exec(code_array, &ip, &cpu)) break;
     }
 
     CPU_Dtor(&cpu);
-    free(code_array->code);
     return;
 }
 

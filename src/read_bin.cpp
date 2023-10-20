@@ -15,19 +15,16 @@ static void print_Code(const Code *code_array);
 static ssize_t fsize(char *filename);
 
 Code *read_bin(char *filename, Code *code_array) {
+    assert(code_array);
     assert(filename);
 
-	code_array->size = fsize(filename) / (ssize_t)sizeof(double);
+	ssize_t code_size = fsize(filename) / (ssize_t)sizeof(double);
 
-	if (code_array->size == -1) {
-		return NULL;
-    }
+	if (code_array->size == -1) return NULL;
 
-    code_array->code = (double *)calloc((size_t)code_array->size, sizeof(double));
+    CodeCtor(code_array, code_size);
 
-    if (!code_array->code) {
-        return NULL;
-    }
+    if (!code_array->code) return NULL;
 
 	int fd = open(filename, O_RDONLY, 0);
 

@@ -50,6 +50,10 @@ typedef struct {
 	double regs[NUM_REGS] = {};
 } CPU;
 
+Code *CodeCtor(Code *code_array, ssize_t code_size);
+
+void CodeDtor(Code *code_array);
+
 CPU *CPU_Ctor(CPU *cpu);
 
 void CPU_Dtor(CPU *cpu);
