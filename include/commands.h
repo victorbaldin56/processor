@@ -6,7 +6,6 @@
     Pop_(stack, &arg1);                                                         \
     Pop_(stack, &arg2);                                                         \
 
-
 DEF_CMD(hlt, 0x0F, false,
         {
             return -1;
@@ -89,4 +88,64 @@ DEF_CMD(pop,  0x08, false,
             Pop_(&cpu->stack, cpu->regs + reg_num);
             return 0;
         })
+
+DEF_CMD(jmp,  0x09, true,
+        {
+            size_t arg = *(size_t *)(codearr->code + *ip + 1);
+            *ip = arg;
+
+            return 0;
+        })
+
+DEF_CMD(jae,  0x0A, true,
+        {
+            size_t arg = *(size_t *)(codearr->code + *ip + 1);
+            TAKE_ARGS(&cpu->stack);
+
+            if (cmp_double(arg1, arg2, EPS) <= 0) *ip = arg;
+
+            return 0;
+        })
+
+DEF_CMD(jbe,  0x0B, true,
+        {
+            size_t arg = *(size_t *)(codearr->code + *ip + 1);
+            TAKE_ARGS(&cpu->stack);
+
+            if (cmp_double(arg1, arg2, EPS) >= 0) *ip = arg;
+
+            return 0;
+        })
+
+DEF_CMD(ja,   0x0C, true,
+        {
+            size_t arg = *(size_t *)(codearr->code + *ip + 1);
+            TAKE_ARGS(&cpu->stack);
+
+            if (cmp_double(arg1, arg2, EPS) < 0) *ip = arg;
+
+            return 0;
+        })
+
+DEF_CMD(jb,   0x0D, true,
+        {
+            size_t arg = *(size_t *)(codearr->code + *ip + 1);
+            TAKE_ARGS(&cpu->stack);
+
+            if (cmp_double(arg1, arg2, EPS) > 0) *ip = arg;
+
+            return 0;
+        })
+
+DEF_CMD(je,   0x0E, true,
+        {
+            size_t arg = *(size_t *)(codearr->code + *ip + 1);
+            TAKE_ARGS(&cpu->stack);
+
+            if (cmp_double(arg1, arg2, EPS) == 0) *ip = arg;
+
+            return 0;
+        })
+
+
 #endif

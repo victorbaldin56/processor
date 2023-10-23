@@ -34,13 +34,17 @@ static int cmd_exec(const Code *code, size_t *ip, CPU *cpu);
 
 static void vm_run(const Code *codearr);
 
-void VM_Proc(char *filename) {
+int Process(char *filename) {
     assert(filename);
 
     Code codearr = {};
-    read_bin(filename, &codearr);
+
+    if (!read_bin(filename, &codearr)) return -1;
+
     vm_run(&codearr);
     CodeDtor(&codearr);
+
+    return 0;
 }
 
 static void vm_run(const Code *codearr) {
@@ -68,12 +72,9 @@ static int cmd_exec(const Code *codearr, size_t *ip, CPU *cpu) {
     assert(cpu->regs);
     STACK_ASS(&cpu->stack);
 
-    // double arg1 = 0, arg2 = 0;
-    unsigned char opcode = codearr->code[*ip];
+    unsigned char cmd_code = codearr->code[*ip];
 
-    ON_DEBUG(printf("opcode = %hhx\n", opcode & CMD));
-
-    switch (opcode & CMD) {
+    switch (cmd_code & CMD) {
         #include "commands.h"
 
         default:
@@ -108,10 +109,6 @@ static double get_arg(const Code *codearr, size_t *ip, CPU *cpu) {
 }
 
 static int cmp_double(const double a, const double b, const double eps) {
-    assert(isfinite(a));
-    assert(isfinite(b));
-    assert(isfinite(eps));
-
     if (abs(b - a) < eps) {
         return 0;
     }

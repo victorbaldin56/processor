@@ -9,10 +9,6 @@
 
 typedef struct stat Stat;
 
-#ifdef DEBUG
-static void print_Code(const Code *codearr);
-#endif
-
 static ssize_t fsize(char *filename);
 
 Code *read_bin(char *filename, Code *codearr) {
@@ -31,8 +27,7 @@ Code *read_bin(char *filename, Code *codearr) {
 
     read(fd, codearr->code, (size_t)code_size);
 
-    ON_DEBUG(printf("read_bin: parsed\n"));
-    ON_DEBUG(print_Code(codearr));
+    CODE_DUMP(codearr);
 
     close(fd);
 
@@ -48,22 +43,3 @@ static ssize_t fsize(char *filename) {
 
     return st.st_size;
 }
-
-#ifdef DEBUG
-static void print_Code(const Code *codearr) {
-    assert(codearr);
-    assert(codearr->code);
-
-    printf("size = %zu\n", codearr->size);
-
-    for (size_t i = 0; i < codearr->size; i++) {
-        for (size_t j = 0; j < sizeof(double); j++) {
-            printf("%hhx ", ((char *)(codearr->code + i))[j]);
-        }
-
-        putchar('\n');
-    }
-
-    putchar('\n');
-}
-#endif

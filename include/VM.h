@@ -23,6 +23,6 @@ CPU *CPU_Ctor(CPU *cpu);
 
 void CPU_Dtor(CPU *cpu);
 
-void VM_Proc(char *filename);
+int Process(char *filename);
 
 #endif // VM
