@@ -1,23 +1,36 @@
-#include "VM.h"
 #include <stdlib.h>
 #include <assert.h>
+#include "codector.h"
+#include "VM.h"
 
-Code *CodeCtor(Code *code_array, ssize_t code_size) {
-    assert(code_array);
-    assert(code_size > 0);
+Code *CodeCtor(Code *codearr, size_t code_size) {
+    assert(codearr);
 
-    code_array->size = code_size;
-    code_array->code = (double *)calloc((size_t)code_size, sizeof(double));
+    codearr->size = code_size;
+    codearr->code = (unsigned char *)calloc(code_size, sizeof(double));
 
-    if (!code_array->code) return NULL;
+    if (!codearr->code) return NULL;
 
-    return code_array;
+    return codearr;
 }
 
-void CodeDtor(Code *code_array) {
-    assert(code_array);
+void CodeDtor(Code *codearr) {
+    CODE_ASSERT(codearr);
 
-    free(code_array->code);
-    code_array->code = NULL;
-    code_array->size = 0;
+    free(codearr->code);
+    codearr->code = NULL;
+    codearr->size = 0;
+}
+
+Code *CodeRealloc(Code *codearr, size_t coeff) {
+    CODE_ASSERT(codearr);
+
+    unsigned char *newcode = (unsigned char *)realloc(codearr->code, codearr->size * coeff);
+
+    if (!newcode) return NULL;
+
+    codearr->code = newcode;
+    codearr->size *= coeff;
+
+    return codearr;
 }

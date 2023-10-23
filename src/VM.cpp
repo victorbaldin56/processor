@@ -1,11 +1,12 @@
-#include "stack.h"
-#include "colors.h"
-#include "VM.h"
 #include <assert.h>
 #include <math.h>
 #include <signal.h>
-#include "read_bin.h"
 #include <stdlib.h>
+#include "stack.h"
+#include "colors.h"
+#include "VM.h"
+#include "codector.h"
+#include "read_bin.h"
 
 #define SIGN(x) ((x > 0) - (x < 0))
 
@@ -21,57 +22,54 @@
         abort();                                \
     }
 
-#define DEF_CMD(name, opcode, has_arg, ...)     \
-    case opcode:                                \
-        __VA_ARGS__                             \
-
-
 static const size_t MAXSTR = 1000; ///< max string lenght for byte-code
 static const double EPS = 1e-7;    ///< floating point comparizon precision
 
-static double get_arg(const Code *code_array, ssize_t *ip, CPU *cpu);
+static double get_arg(const Code *codearr, size_t *ip, CPU *cpu);
 
 static int cmp_double(const double a, const double b, const double eps);
 
 /// @brief executes a command by code
-static int cmd_exec(const Code *code, ssize_t *ip, CPU *cpu);
+static int cmd_exec(const Code *code, size_t *ip, CPU *cpu);
 
-static void vm_run(const Code *code_array);
+static void vm_run(const Code *codearr);
 
 void VM_Proc(char *filename) {
     assert(filename);
 
-    Code code_array = {};
-    read_bin(filename, &code_array);
-    vm_run(&code_array);
-    CodeDtor(&code_array);
+    Code codearr = {};
+    read_bin(filename, &codearr);
+    vm_run(&codearr);
+    CodeDtor(&codearr);
 }
 
-static void vm_run(const Code *code_array) {
-    assert(code_array);
-    assert(code_array->code);
+static void vm_run(const Code *codearr) {
+    assert(codearr);
+    assert(codearr->code);
 
     CPU cpu = {};
     CPU_Ctor(&cpu);
 
-    for (ssize_t ip = 0; ip < code_array->size; ip++) {
-        if (cmd_exec(code_array, &ip, &cpu)) break;
+    for (size_t ip = 0; ip < codearr->size; ip++) {
+        if (cmd_exec(codearr, &ip, &cpu)) break;
     }
 
     CPU_Dtor(&cpu);
-    return;
 }
 
-static int cmd_exec(const Code *code_array, ssize_t *ip, CPU *cpu) {
+#define DEF_CMD(name, opcode, has_arg, ...)     \
+    case opcode:                                \
+        __VA_ARGS__                             \
+
+static int cmd_exec(const Code *codearr, size_t *ip, CPU *cpu) {
     assert(cpu);
     assert(ip);
-    assert(code_array);
+    CODE_ASSERT(codearr);
     assert(cpu->regs);
     STACK_ASS(&cpu->stack);
-    assert((*ip) >= 0);
 
     // double arg1 = 0, arg2 = 0;
-    char opcode = *(char *)(code_array->code + (*ip));
+    unsigned char opcode = codearr->code[*ip];
 
     ON_DEBUG(printf("opcode = %hhx\n", opcode & CMD));
 
@@ -80,32 +78,30 @@ static int cmd_exec(const Code *code_array, ssize_t *ip, CPU *cpu) {
 
         default:
         {
-            fprintf(stderr, "Unknown command\n");
-            abort();
+            raise(SIGSTOP);
         }
     }
 
+    return -1;
 }
 
 #undef DEF_CMD
 
-static double get_arg(const Code *code_array, ssize_t *ip, CPU *cpu) {
-    assert(code_array);
+static double get_arg(const Code *codearr, size_t *ip, CPU *cpu) {
+    assert(codearr);
     assert(ip);
     assert(cpu);
 
     double res = 0;
 
-    char cmd = (char )code_array->code[*ip];
-
-    if (cmd & IMM) {
+    if (codearr->code[*ip] & IMM) {
         (*ip)++;
-        res = code_array->code[*ip];
+        res = *(double *)(codearr->code + *ip);
+        (*ip) += sizeof(double);
     }
 
-    if (cmd & REG) {
-        (*ip)++;
-        res = cpu->regs[(size_t)code_array->code[*ip]];
+    if (codearr->code[*ip] & REG) {
+        res = cpu->regs[codearr->code[++(*ip)]];
     }
 
     return res;

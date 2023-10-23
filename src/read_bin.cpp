@@ -1,66 +1,64 @@
-#include "../include/read_bin.h"
-#include "../include/VM.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include "read_bin.h"
+#include "VM.h"
+#include "codector.h"
 
 typedef struct stat Stat;
 
 #ifdef DEBUG
-static void print_Code(const Code *code_array);
+static void print_Code(const Code *codearr);
 #endif
 
 static ssize_t fsize(char *filename);
 
-Code *read_bin(char *filename, Code *code_array) {
-    assert(code_array);
+Code *read_bin(char *filename, Code *codearr) {
+    assert(codearr);
     assert(filename);
 
-	ssize_t code_size = fsize(filename) / (ssize_t)sizeof(double);
+	ssize_t code_size = fsize(filename);
 
-	if (code_array->size == -1) return NULL;
+	if (code_size == -1) return NULL;
 
-    CodeCtor(code_array, code_size);
+    CodeCtor(codearr, (size_t)code_size);
 
-    if (!code_array->code) return NULL;
+    if (!codearr->code) return NULL;
 
 	int fd = open(filename, O_RDONLY, 0);
 
-    for (ssize_t i = 0; i < code_array->size; i++) {
-        read(fd, (char *)(code_array->code + i), sizeof(double));
-    }
+    read(fd, codearr->code, (size_t)code_size);
 
     ON_DEBUG(printf("read_bin: parsed\n"));
-    ON_DEBUG(print_Code(code_array));
+    ON_DEBUG(print_Code(codearr));
 
     close(fd);
 
-    return code_array;
+    return codearr;
 }
 
 static ssize_t fsize(char *filename) {
     assert(filename);
 
     Stat st = {};
-    if (stat(filename, &st) == -1) {
-		return -1;
-    }
+
+    if (stat(filename, &st) == -1) return -1;
 
     return st.st_size;
 }
 
 #ifdef DEBUG
-static void print_Code(const Code *code_array) {
-    assert(code_array);
-    assert(code_array->code);
+static void print_Code(const Code *codearr) {
+    assert(codearr);
+    assert(codearr->code);
 
-    printf("size = %zd\n", code_array->size);
+    printf("size = %zu\n", codearr->size);
 
-    for (ssize_t i = 0; i < code_array->size; i++) {
+    for (size_t i = 0; i < codearr->size; i++) {
         for (size_t j = 0; j < sizeof(double); j++) {
-            printf("%hhx ", ((char *)(code_array->code + i))[j]);
+            printf("%hhx ", ((char *)(codearr->code + i))[j]);
         }
 
         putchar('\n');

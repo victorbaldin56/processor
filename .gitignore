@@ -28,6 +28,7 @@
 logs
 build
 *.swp
+.clangd
 
 # Folder with docs
 html

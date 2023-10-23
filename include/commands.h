@@ -32,7 +32,7 @@ DEF_CMD(out, 0x01, false,
 
 DEF_CMD(push, 0x02, true,
         {
-            double arg = get_arg(code_array,
+            double arg = get_arg(codearr,
                                  ip, cpu);
             Push_(&cpu->stack, arg);
             return 0;
@@ -82,7 +82,10 @@ DEF_CMD(sqrt, 0x07, false,
 
 DEF_CMD(pop,  0x08, false,
         {
-            unsigned char reg_num = (unsigned char)code_array->code[++(*ip)];
+            unsigned char reg_num = codearr->code[++(*ip)];
+
+            if (reg_num >= NUM_REGS) raise(SIGSTOP);
+
             Pop_(&cpu->stack, cpu->regs + reg_num);
             return 0;
         })
