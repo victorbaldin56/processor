@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <math.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -7,6 +6,7 @@
 #include "VM.h"
 #include "codector.h"
 #include "read_bin.h"
+#include <assert.h>
 
 #define SIGN(x) ((x > 0) - (x < 0))
 
@@ -32,6 +32,8 @@ static int cmp_double(const double a, const double b, const double eps);
 /// @brief executes a command by code
 static int cmd_exec(const Code *code, size_t *ip, CPU *cpu);
 
+static void jump(const Code *codearr, size_t *ip);
+
 static void vm_run(const Code *codearr);
 
 int Process(char *filename) {
@@ -48,8 +50,7 @@ int Process(char *filename) {
 }
 
 static void vm_run(const Code *codearr) {
-    assert(codearr);
-    assert(codearr->code);
+    CODE_ASSERT(codearr);
 
     CPU cpu = {};
     CPU_Ctor(&cpu);
@@ -89,13 +90,15 @@ static int cmd_exec(const Code *codearr, size_t *ip, CPU *cpu) {
 #undef DEF_CMD
 
 static double get_arg(const Code *codearr, size_t *ip, CPU *cpu) {
-    assert(codearr);
+    CODE_ASSERT(codearr);
     assert(ip);
     assert(cpu);
 
     double res = 0;
 
     if (codearr->code[*ip] & IMM) {
+        if (*ip + sizeof(double) > codearr->size) raise(SIGSTOP); // controls buffer overflow
+
         (*ip)++;
         res = *(double *)(codearr->code + *ip);
         (*ip) += sizeof(double);
@@ -106,6 +109,19 @@ static double get_arg(const Code *codearr, size_t *ip, CPU *cpu) {
     }
 
     return res;
+}
+
+static void jump(const Code *codearr, size_t *ip) {
+    CODE_ASSERT(codearr);
+    assert(ip);
+
+    if (*ip + sizeof(size_t) > codearr->size) raise(SIGSTOP);
+
+    size_t addr = *(const size_t *)(codearr + *ip + 1);
+
+    if (addr >= codearr->size) raise(SIGSTOP);
+
+    *ip = addr;
 }
 
 static int cmp_double(const double a, const double b, const double eps) {

@@ -1,11 +1,12 @@
 #include <stdlib.h>
-#include <assert.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include "read_bin.h"
 #include "VM.h"
+#include "codedump.h"
 #include "codector.h"
+#include <assert.h>
 
 typedef struct stat Stat;
 

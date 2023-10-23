@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    if (Process(argv[1])) {
+    if (Process(argv[1]) != 0) {
         perror("Processor");
         return -1;
     }

@@ -1,10 +1,13 @@
 #ifndef CMD
 #define CMD
 
-#define TAKE_ARGS(stack)                                                        \
-    double arg1 = 0, arg2 = 0;                                                  \
-    Pop_(stack, &arg1);                                                         \
-    Pop_(stack, &arg2);                                                         \
+#define TAKE_ARGS(stack)            \
+    double arg1 = 0, arg2 = 0;      \
+    Pop_(stack, &arg1);             \
+    Pop_(stack, &arg2);             \
+
+#define COND_JMP(expr)              \
+    if (expr) jump(codearr, ip);
 
 DEF_CMD(hlt, 0x0F, false,
         {
@@ -91,58 +94,52 @@ DEF_CMD(pop,  0x08, false,
 
 DEF_CMD(jmp,  0x09, true,
         {
-            size_t arg = *(size_t *)(codearr->code + *ip + 1);
-            *ip = arg;
+            COND_JMP(true);
 
             return 0;
         })
 
 DEF_CMD(jae,  0x0A, true,
         {
-            size_t arg = *(size_t *)(codearr->code + *ip + 1);
             TAKE_ARGS(&cpu->stack);
 
-            if (cmp_double(arg1, arg2, EPS) <= 0) *ip = arg;
+            COND_JMP(cmp_double(arg1, arg2, EPS) <= 0);
 
             return 0;
         })
 
 DEF_CMD(jbe,  0x0B, true,
         {
-            size_t arg = *(size_t *)(codearr->code + *ip + 1);
             TAKE_ARGS(&cpu->stack);
 
-            if (cmp_double(arg1, arg2, EPS) >= 0) *ip = arg;
+            COND_JMP(cmp_double(arg1, arg2, EPS) >= 0);
 
             return 0;
         })
 
 DEF_CMD(ja,   0x0C, true,
         {
-            size_t arg = *(size_t *)(codearr->code + *ip + 1);
             TAKE_ARGS(&cpu->stack);
 
-            if (cmp_double(arg1, arg2, EPS) < 0) *ip = arg;
+            COND_JMP(cmp_double(arg1, arg2, EPS) < 0);
 
             return 0;
         })
 
 DEF_CMD(jb,   0x0D, true,
         {
-            size_t arg = *(size_t *)(codearr->code + *ip + 1);
             TAKE_ARGS(&cpu->stack);
 
-            if (cmp_double(arg1, arg2, EPS) > 0) *ip = arg;
+            COND_JMP(cmp_double(arg1, arg2, EPS) > 0);
 
             return 0;
         })
 
 DEF_CMD(je,   0x0E, true,
         {
-            size_t arg = *(size_t *)(codearr->code + *ip + 1);
             TAKE_ARGS(&cpu->stack);
 
-            if (cmp_double(arg1, arg2, EPS) == 0) *ip = arg;
+            COND_JMP(cmp_double(arg1, arg2, EPS) == 0);
 
             return 0;
         })
