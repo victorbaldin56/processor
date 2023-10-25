@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "codector.h"
-#include "VM.h"
 
 const size_t BYTES_PER_ROW = 16; ///< number of bytes in a single row in code array dump
 

@@ -3,16 +3,9 @@
 
 #include <stdio.h>
 #include "stack.h"
+#include "codector.h"
 
 #define DEBUG
-
-#ifdef DEBUG
-#define ON_DEBUG(x) x
-#else
-#define ON_DEBUG(x)
-#endif
-
-const size_t NUM_REGS = 4; ///< number of registers
 
 typedef struct {
 	Stack stack;

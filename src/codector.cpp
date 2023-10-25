@@ -28,10 +28,15 @@ Code *CodeRealloc(Code *codearr, size_t coeff) {
 
     unsigned char *newcode = (unsigned char *)realloc(codearr->code, codearr->size * coeff);
 
-    if (!newcode) return NULL;
+    if (!newcode) {
+        ON_DEBUG(fprintf(stderr, "Code realloc: realloc error\n"));
+        return NULL;
+    }
 
     codearr->code = newcode;
     codearr->size *= coeff;
+
+    ON_DEBUG(fprintf(stderr, "Code realloc: success, new size = %zu\n", codearr->size));
 
     return codearr;
 }

@@ -3,11 +3,21 @@
 
 #include <stddef.h>
 
+const size_t NUM_REGS = 4; ///< number of registers
+
+#define DEBUG
+
+#ifdef DEBUG
+#define ON_DEBUG(x) x
+#else
+#define ON_DEBUG(x)
+#endif
+
 enum Masks {
     CMD = 0x0F,
     IMM = 0x20,
-    REG = 0x30,
-	RAM = 0x40,
+    REG = 0x40,
+	RAM = 0x80,
 };
 
 typedef struct {

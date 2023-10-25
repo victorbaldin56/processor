@@ -1,13 +1,20 @@
 #ifndef CMD
 #define CMD
 
-#define TAKE_ARGS(stack)            \
-    double arg1 = 0, arg2 = 0;      \
-    Pop_(stack, &arg1);             \
-    Pop_(stack, &arg2);             \
+#define TAKE_ARGS(stack)                            \
+    double arg1 = 0, arg2 = 0;                      \
+    Pop_(stack, &arg1);                             \
+    Pop_(stack, &arg2);                             \
 
-#define COND_JMP(expr)              \
-    if (expr) jump(codearr, ip);
+#define COND_JMP(expr)                              \
+    if (expr) {                                     \
+        size_t addr = (size_t)get_arg(codearr,      \
+                                      ip, cpu);     \
+                                                    \
+        if (addr >= codearr->size) raise(SIGSTOP);  \
+                                                    \
+        *ip = addr;                                 \
+    }
 
 DEF_CMD(hlt, 0x0F, false,
         {
@@ -82,13 +89,13 @@ DEF_CMD(sqrt, 0x07, false,
             return 0;
         })
 
-DEF_CMD(pop,  0x08, false,
+DEF_CMD(pop,  0x08, true,
         {
             unsigned char reg_num = codearr->code[++(*ip)];
 
             if (reg_num >= NUM_REGS) raise(SIGSTOP);
 
-            Pop_(&cpu->stack, cpu->regs + reg_num);
+            Pop_(&cpu->stack, &cpu->regs[reg_num]);
             return 0;
         })
 
