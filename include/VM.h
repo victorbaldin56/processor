@@ -10,6 +10,7 @@
 typedef struct {
 	Stack stack;
 	double regs[NUM_REGS] = {};
+	double RAM[RAM_SIZE]  = {};
 } CPU;
 
 CPU *CPU_Ctor(CPU *cpu);

@@ -1,19 +1,18 @@
 #ifndef CMD
 #define CMD
 
-#define TAKE_ARGS(stack)                            \
-    double arg1 = 0, arg2 = 0;                      \
-    Pop_(stack, &arg1);                             \
-    Pop_(stack, &arg2);                             \
+#define TAKE_ARGS(stack)                                    \
+    double arg1 = 0, arg2 = 0;                              \
+    Pop_(stack, &arg1);                                     \
+    Pop_(stack, &arg2);                                     \
 
-#define COND_JMP(expr)                              \
-    if (expr) {                                     \
-        size_t addr = (size_t)get_arg(codearr,      \
-                                      ip, cpu);     \
-                                                    \
-        if (addr >= codearr->size) raise(SIGSTOP);  \
-                                                    \
-        *ip = addr;                                 \
+#define COND_JMP(expr)                                      \
+    if (expr) {                                             \
+        double addr = *get_arg(codearr, ip, cpu);           \
+                                                            \
+        if ((size_t)addr >= codearr->size) raise(SIGSTOP);  \
+                                                            \
+        *ip = (size_t)addr - 1;                             \
     }
 
 DEF_CMD(hlt, 0x0F, false,
@@ -41,8 +40,8 @@ DEF_CMD(out, 0x01, false,
 
 DEF_CMD(push, 0x02, true,
         {
-            double arg = get_arg(codearr,
-                                 ip, cpu);
+            double arg = *get_arg(codearr,
+                                  ip, cpu);
             Push_(&cpu->stack, arg);
             return 0;
         })
@@ -91,11 +90,9 @@ DEF_CMD(sqrt, 0x07, false,
 
 DEF_CMD(pop,  0x08, true,
         {
-            unsigned char reg_num = codearr->code[++(*ip)];
+            double *popaddr = get_arg(codearr, ip, cpu);
 
-            if (reg_num >= NUM_REGS) raise(SIGSTOP);
-
-            Pop_(&cpu->stack, &cpu->regs[reg_num]);
+            Pop_(&cpu->stack, popaddr);
             return 0;
         })
 

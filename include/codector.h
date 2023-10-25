@@ -3,7 +3,9 @@
 
 #include <stddef.h>
 
-const size_t NUM_REGS = 4; ///< number of registers
+const size_t NUM_REGS = 5;    ///< number of registers (including tmp)
+
+const size_t RAM_SIZE = 1024; ///< RAM size (in doubles)
 
 #define DEBUG
 
@@ -14,7 +16,7 @@ const size_t NUM_REGS = 4; ///< number of registers
 #endif
 
 enum Masks {
-    CMD = 0x0F,
+    CMD = 0x1F,
     IMM = 0x20,
     REG = 0x40,
 	RAM = 0x80,

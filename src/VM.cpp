@@ -25,7 +25,7 @@
 static const size_t MAXSTR = 1000; ///< max string lenght for byte-code
 static const double EPS = 1e-7;    ///< floating point comparizon precision
 
-static double get_arg(const Code *codearr, size_t *ip, CPU *cpu);
+static double *get_arg(const Code *codearr, size_t *ip, CPU *cpu);
 
 static int cmp_double(const double a, const double b, const double eps);
 
@@ -91,31 +91,74 @@ static int cmd_exec(const Code *codearr, size_t *ip, CPU *cpu) {
 
 #undef DEF_CMD
 
-static double get_arg(const Code *codearr, size_t *ip, CPU *cpu) {
+static double *get_arg(const Code *codearr, size_t *ip, CPU *cpu) {
     CODE_ASSERT(codearr);
     assert(ip);
     assert(cpu);
 
-    double res = 0;
+    double *res = NULL;
+    size_t pos = *ip;
 
-    if (codearr->code[*ip] & IMM) {
-        if (*ip + sizeof(double) >= codearr->size) raise(SIGSTOP); // controls buffer overflow
+    switch (codearr->code[*ip] & (IMM | REG)) {
+        case REG | IMM:
+        {
+            if (*ip + sizeof(double) + 1 >= codearr->size) raise(SIGSTOP);
 
-        (*ip)++;
-        res = *(double *)(codearr->code + *ip);
-        (*ip) += (sizeof(double) - 1);
+            (*ip)++;
+
+            cpu->regs[0] = 0;
+            cpu->regs[0] += cpu->regs[codearr->code[*ip]];
+
+            (*ip)++;
+
+            cpu->regs[0] += *(double *)(codearr->code + *ip);
+
+            (*ip) += (sizeof(double) - 1);
+            res = cpu->regs;
+            break;
+        }
+
+/*        case RAM | IMM:
+        {
+            if (*ip + 2 * sizeof(double) > codearr->size) raise(SIGSTOP);
+
+            (*ip)++;
+
+
+
+            break;
+        } */
+
+        case IMM:
+        {
+            if (*ip + sizeof(double) >= codearr->size) raise(SIGSTOP); // controls buffer overflow
+
+            (*ip)++;
+            res = (double *)(codearr->code + *ip);
+            (*ip) += (sizeof(double) - 1);
+            break;
+        }
+
+        case REG:
+        {
+            if (*ip + 1 >= codearr->size) raise(SIGSTOP);
+
+            (*ip)++;
+
+            ON_DEBUG(if (codearr->code[*ip] >= NUM_REGS) fprintf(stderr, "regidx = %hhu", codearr->code[*ip]));
+
+            res = cpu->regs + codearr->code[*ip];
+            ON_DEBUG(fprintf(stderr, "get_arg: reg = %lf\n", *res));
+            break;
+        }
+
+        default:
+        {
+            raise(SIGSTOP);
+        }
     }
 
-    else if (codearr->code[*ip] & REG) {
-        if (*ip + 1 >= codearr->size) raise(SIGSTOP);
-
-        (*ip)++;
-
-        if (codearr->code[*ip] >= NUM_REGS) fprintf(stderr, "regidx = %hhu", codearr->code[*ip]);
-
-        res = cpu->regs[codearr->code[*ip]];
-        ON_DEBUG(fprintf(stderr, "get_arg: reg = %lf\n", res));
-    }
+    if (codearr->code[pos] & RAM) res = cpu->RAM + (size_t)*res;
 
     return res;
 }
