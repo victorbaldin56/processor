@@ -13,6 +13,10 @@ typedef struct {
 	double RAM[RAM_SIZE]  = {};
 } CPU;
 
+#define CPU_ASSERT(cpu)			\
+	assert(cpu);				\
+	STACK_ASS(&cpu->stack);
+
 CPU *CPU_Ctor(CPU *cpu);
 
 void CPU_Dtor(CPU *cpu);

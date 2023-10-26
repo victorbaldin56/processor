@@ -69,11 +69,9 @@ static void vm_run(const Code *codearr) {
         }
 
 static int cmd_exec(const Code *codearr, size_t *ip, CPU *cpu) {
-    assert(cpu);
+    CPU_ASSERT(cpu);
     assert(ip);
     CODE_ASSERT(codearr);
-    assert(cpu->regs);
-    STACK_ASS(&cpu->stack);
 
     unsigned char cmd_code = codearr->code[*ip];
 
@@ -94,7 +92,7 @@ static int cmd_exec(const Code *codearr, size_t *ip, CPU *cpu) {
 static double *get_arg(const Code *codearr, size_t *ip, CPU *cpu) {
     CODE_ASSERT(codearr);
     assert(ip);
-    assert(cpu);
+    CPU_ASSERT(cpu);
 
     double *res = NULL;
     size_t pos = *ip;
