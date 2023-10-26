@@ -3,8 +3,7 @@
 #include "stack.h"
 #include "colors.h"
 #include "VM.h"
-
-const double VERSION = 1.0;
+#include "codector.h"
 
 int main(int argc, char *argv[]) {
     if (argc == 1) {
@@ -15,7 +14,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (!strcmp(argv[1], "--help")) {
-        printf("This is processor emulator, version %.1lf\n", VERSION);
+        printf("This is processor emulator, version %hhu.%hhu", VERSION | BIGVERS, VERSION | LITVERS);
         printf("(c) Victor Baldin, 2023\n");
         printf("Usage: processor [options] [filename]\n");
         printf("Options:\n");
@@ -25,14 +24,9 @@ int main(int argc, char *argv[]) {
     }
 
     if (!strcmp(argv[1], "--version")) {
-        printf("Version %.1lf\n", VERSION);
+        printf("Version %hhu.%hhu", VERSION | BIGVERS, VERSION | LITVERS);
         return 0;
     }
 
-    if (Process(argv[1]) != 0) {
-        perror("Processor");
-        return -1;
-    }
-
-    return 0;
+    return Process(argv[1]);
 }

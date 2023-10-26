@@ -2,8 +2,17 @@
 #define CODECTOR
 
 #include <stddef.h>
+#include <inttypes.h>
 
 const size_t NUM_REGS = 5;    ///< number of registers (including tmp)
+
+const int32_t SIGNATURE  = 0x56414223;
+
+const unsigned char VERSION = 0x11;    ///< format version
+
+const char BIGVERS = 0xF0;
+
+const char LITVERS = 0x0F;
 
 const size_t RAM_SIZE = 1024; ///< RAM size (in doubles)
 

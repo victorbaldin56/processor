@@ -7,6 +7,12 @@
 
 #define DEBUG
 
+enum ExecRes {
+	FILE_NOT_FOUND = -1,
+	EXEC_OK = 0,
+	NOT_VALID_FMT = 1,
+};
+
 typedef struct {
 	Stack stack;
 	double regs[NUM_REGS] = {};
@@ -21,6 +27,6 @@ CPU *CPU_Ctor(CPU *cpu);
 
 void CPU_Dtor(CPU *cpu);
 
-int Process(char *filename);
+ExecRes Process(char *filename);
 
 #endif // VM
