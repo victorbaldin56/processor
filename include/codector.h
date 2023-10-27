@@ -21,9 +21,9 @@ const size_t RAM_SIZE = 1024; ///< RAM size (in doubles)
 #define DEBUG
 
 #ifdef DEBUG
-#define ON_DEBUG(x) x
+#define ON_DEBUG(...) __VA_ARGS__
 #else
-#define ON_DEBUG(x)
+#define ON_DEBUG(...) ;
 #endif
 
 enum Masks {

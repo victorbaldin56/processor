@@ -5,7 +5,7 @@
 #include "stack.h"
 #include "codector.h"
 
-#define DEBUG
+//#define DEBUG
 
 enum ExecRes {
 	FILE_NOT_FOUND = -1,

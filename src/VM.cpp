@@ -29,6 +29,8 @@ static double *get_arg(const Code *codearr, size_t *ip, CPU *cpu);
 
 static int cmp_double(const double a, const double b, const double eps);
 
+static void jump(const Code *codearr, size_t *ip, CPU *cpu, bool expr);
+
 /// @brief executes a command by code
 static int cmd_exec(const Code *code, size_t *ip, CPU *cpu);
 
@@ -133,17 +135,6 @@ static double *get_arg(const Code *codearr, size_t *ip, CPU *cpu) {
             break;
         }
 
-/*        case RAM | IMM:
-        {
-            if (*ip + 2 * sizeof(double) > codearr->size) raise(SIGSTOP);
-
-            (*ip)++;
-
-
-
-            break;
-        } */
-
         case IMM:
         {
             if (*ip + sizeof(double) >= codearr->size) raise(SIGSTOP); // controls buffer overflow
@@ -172,6 +163,26 @@ static double *get_arg(const Code *codearr, size_t *ip, CPU *cpu) {
     if (codearr->code[pos] & RAM) res = cpu->RAM + (size_t)*res;
 
     return res;
+}
+
+static void jump(const Code *codearr, size_t *ip, CPU *cpu, bool expr) {
+    CODE_ASSERT(codearr);
+    assert(ip);
+    CPU_ASSERT(cpu);
+
+    if (expr) {
+        double addr = *get_arg(codearr, ip, cpu);
+
+        if ((size_t)addr >= codearr->size) raise(SIGSTOP);
+
+        *ip = (size_t)addr + SIGNATURE_SIZE - 1;
+    }
+
+    else {
+        if (codearr->code[*ip] & REG) (*ip)++;
+        else (*ip) += sizeof(double);
+    }
+
 }
 
 static int cmp_double(const double a, const double b, const double eps) {

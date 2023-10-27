@@ -6,14 +6,7 @@
     Pop_(stack, &arg1);                                     \
     Pop_(stack, &arg2);                                     \
 
-#define COND_JMP(expr)                                      \
-    if (expr) {                                             \
-        double addr = *get_arg(codearr, ip, cpu);           \
-                                                            \
-        if ((size_t)addr >= codearr->size) raise(SIGSTOP);  \
-                                                            \
-        *ip = (size_t)addr + SIGNATURE_SIZE - 1;            \
-    }
+#define COND_JMP(expr) jump(codearr, ip, cpu, expr)
 
 DEF_CMD(hlt, 0x0F, false,
         {
