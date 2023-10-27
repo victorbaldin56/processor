@@ -32,9 +32,9 @@ static int cmp_double(const double a, const double b, const double eps);
 /// @brief executes a command by code
 static int cmd_exec(const Code *code, size_t *ip, CPU *cpu);
 
-static int check_sign(const Code *code, size_t *ip);
+static int check_sign(Code *code);
 
-static int vm_run(const Code *codearr);
+static int vm_run(Code *codearr);
 
 ExecRes Process(char *filename) {
     assert(filename);
@@ -57,21 +57,28 @@ ExecRes Process(char *filename) {
     return EXEC_OK;
 }
 
-static int vm_run(const Code *codearr) {
+static int vm_run(Code *codearr) {
     CODE_ASSERT(codearr);
 
     CPU cpu = {};
     CPU_Ctor(&cpu);
 
-    size_t ip = 0;
+    if (check_sign(codearr) != 0) return -1;
 
-    if (check_sign(codearr, &ip) != 0) return -1;
-
-    for (; ip < codearr->size; ip++) {
+    for (size_t ip = SIGNATURE_SIZE; ip < codearr->size; ip++) {
         if (cmd_exec(codearr, &ip, &cpu) != 0) break;
     }
 
     CPU_Dtor(&cpu);
+    return 0;
+}
+
+static int check_sign(Code *codearr) {
+    CODE_ASSERT(codearr);
+
+    if (*(int32_t *)codearr->code != SIGNATURE) return -1;
+    if (codearr->code[sizeof(int32_t)] != VERSION) return -1;
+
     return 0;
 }
 
@@ -82,19 +89,6 @@ static int vm_run(const Code *codearr) {
                                       cmd_code, *ip));              \
             __VA_ARGS__                                             \
         }
-
-static int check_sign(const Code *codearr, size_t *ip) {
-    CODE_ASSERT(codearr);
-    assert(ip);
-
-    if (*(int32_t *)codearr->code != SIGNATURE) return -1;
-    (*ip) += sizeof(int32_t);
-
-    if (codearr->code[*ip] != VERSION) return -1;
-    (*ip)++;
-
-    return 0;
-}
 
 static int cmd_exec(const Code *codearr, size_t *ip, CPU *cpu) {
     CPU_ASSERT(cpu);

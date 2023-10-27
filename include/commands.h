@@ -12,7 +12,7 @@
                                                             \
         if ((size_t)addr >= codearr->size) raise(SIGSTOP);  \
                                                             \
-        *ip = (size_t)addr - 1;                             \
+        *ip = (size_t)addr + SIGNATURE_SIZE - 1;            \
     }
 
 DEF_CMD(hlt, 0x0F, false,

@@ -26,7 +26,8 @@ void CodeDtor(Code *codearr) {
 Code *CodeRealloc(Code *codearr, size_t coeff) {
     CODE_ASSERT(codearr);
 
-    unsigned char *newcode = (unsigned char *)realloc(codearr->code, codearr->size * coeff);
+    unsigned char *newcode = (unsigned char *)realloc(codearr->code,
+                                                      codearr->size * coeff);
 
     if (!newcode) {
         ON_DEBUG(fprintf(stderr, "Code realloc: realloc error\n"));

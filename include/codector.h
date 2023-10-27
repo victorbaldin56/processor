@@ -14,6 +14,8 @@ const char BIGVERS = 0xF0;
 
 const char LITVERS = 0x0F;
 
+const size_t SIGNATURE_SIZE = sizeof(int32_t) + 1;
+
 const size_t RAM_SIZE = 1024; ///< RAM size (in doubles)
 
 #define DEBUG
