@@ -15,6 +15,7 @@ enum ExecRes {
 
 typedef struct {
 	Stack stack;
+	Stack callstack;
 	double regs[NUM_REGS] = {};
 	double RAM[RAM_SIZE]  = {};
 } CPU;

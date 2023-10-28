@@ -29,7 +29,7 @@ static double *get_arg(const Code *codearr, size_t *ip, CPU *cpu);
 
 static int cmp_double(const double a, const double b, const double eps);
 
-static void jump(const Code *codearr, size_t *ip, CPU *cpu, bool expr);
+static double jump(const Code *codearr, size_t *ip, CPU *cpu, bool expr);
 
 /// @brief executes a command by code
 static int cmd_exec(const Code *code, size_t *ip, CPU *cpu);
@@ -124,9 +124,9 @@ static double *get_arg(const Code *codearr, size_t *ip, CPU *cpu) {
     switch (codearr->code[*ip] & (IMM | REG)) {
         case REG | IMM:
         {
-            if (*ip + sizeof(double) + 1 >= codearr->size) raise(SIGSTOP);
+            if (*ip + sizeof(double) + 1 >= codearr->size) raise(SIGSTOP); // TODO
             (*ip)++;
-            cpu->regs[0] = 0;
+            cpu->regs[0] = 0; ///< reg[0] is tmp reg used only by processor
             cpu->regs[0] += cpu->regs[codearr->code[*ip]];
             (*ip)++;
             cpu->regs[0] += *(double *)(codearr->code + *ip);
@@ -165,7 +165,7 @@ static double *get_arg(const Code *codearr, size_t *ip, CPU *cpu) {
     return res;
 }
 
-static void jump(const Code *codearr, size_t *ip, CPU *cpu, bool expr) {
+static double jump(const Code *codearr, size_t *ip, CPU *cpu, bool expr) {
     CODE_ASSERT(codearr);
     assert(ip);
     CPU_ASSERT(cpu);

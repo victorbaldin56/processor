@@ -8,11 +8,10 @@
 
 #define COND_JMP(expr) jump(codearr, ip, cpu, expr)
 
-DEF_CMD(hlt, 0x0F, false,
+DEF_CMD(hlt, 0x10, false,
         {
             return -1;
-        }
-    )
+        })
 
 DEF_CMD(in,  0x00, false,
         {
@@ -137,6 +136,28 @@ DEF_CMD(je,   0x0E, true,
             TAKE_ARGS(&cpu->stack);
 
             COND_JMP(cmp_double(arg1, arg2, EPS) == 0);
+
+            return 0;
+        })
+
+DEF_CMD(call, 0x0F, true,
+        {
+            ON_DEBUG(fprintf(stderr, "there is a call, current ip = %zu\n", *ip));
+            Push_(&cpu->callstack, (double)(*ip));
+
+            COND_JMP(true);
+
+            return 0;
+        })
+
+DEF_CMD(ret,  0x11, false,
+        {
+            double addr = 0;
+
+            Pop_(&cpu->callstack, &addr);
+
+            *ip = (size_t)(addr + sizeof(double));
+            ON_DEBUG(fprintf(stderr, "return back, *ip = %zu\n", *ip));
 
             return 0;
         })
