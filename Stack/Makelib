@@ -26,10 +26,11 @@ OBJS := $(filter-out $(BUILD_DIR)/$(SRC_DIR)/main.cpp.o, $(OBJS))
 LIB = stack.a
 
 $(BUILD_DIR)/$(LIB): $(OBJS)
-	@$(CC) $(OBJS) $(FLAGS) -o $@
+	ar rcs $@ $(OBJS)
 
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	@mkdir -p $(BUILD_DIR)
+	@mkdir -p $(BUILD_DIR)/src
 	@$(CC) $(FLAGS) $(FLAGS) -c $< -o $@
 
 .PHONY: clean
