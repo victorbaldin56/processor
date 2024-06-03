@@ -1,27 +1,156 @@
-# assembler
-Compiler for simplified assembler-like language. Translates the following
-commands to the bytecode compatible with my [VM_CPU](https://github.com/victorbaldin56/VM_CPU).
+# Ассемблер
+Упрощенный язык ассемблера для эмулятора процессора https://github.com/victorbaldin56/processor.
 
-## Usage
-### Build
-1. `git clone https://github.com/victorbaldin56/assembler`
-2. `make`
+## Сборка
+После сборки эмулятора достаточно:
+```
+make
+```
 
-### Supported commands
-This virtual CPU currently
-supports the entire list of the following:
-| Command code | Command name | What command does |
-| :----------: | :----------: | :---------------: |
-| -1           | hlt          | Halt; stop the program |
-| 0            | in           | Take a value from standart input and push it to stack |
-| 1            | out          | Pop a last value from stack and print it |
-| 2            | push         | Push an argument following to the command code to stack |
-| 3            | add          | Pop 2 last values from stack and push the sum to stack |
-| 4            | sub          | Substract 2 last numbers from stack |
-| 5            | mult         | Multiply |
-| 6            | div          | Divide; raise signal if denominator is zero |
-| 7            | sqrt         | Take a square root |
+## Примеры
+В качестве наиболее иллюстративных примеров были выбраны 2 программы: одна вычисляет факториал
+рекурсивно, вторая решает квадратное уравнение. Обе читают данные с `stdin`.
 
+<details>
+<summary>Факториал</summary>
 
-## Support
-Created by [victorbaldin56](https://github.com/victorbaldin56)
+```
+jmp main
+
+Factorial:
+    push rax
+    push 0
+    je end ; condition of the recursion end
+
+    push rax
+
+    push rax
+    push 1
+    sub
+    pop rax
+
+    call Factorial ; recursive call
+
+    push rax
+    mul ; fact(n) = n*fact(n - 1)
+
+    pop rax
+    ret
+
+end:
+    push 1
+    pop rax
+    ret
+
+main:
+    in
+    pop rax
+
+    call Factorial
+
+    push rax
+    out
+
+    hlt
+```
+
+</details>
+
+<details>
+<summary>Квадратное уравнение</summary>
+
+```
+main:
+    in
+    pop rax
+
+    in
+    pop rbx
+
+    in
+    pop rcx
+
+    push rax
+    push 0
+    je Linear
+
+    call Discr
+
+    push rdx
+    push 0
+
+    ja halt ; if D < 0
+
+    push rdx
+    sqrt
+
+    pop rdx
+    push rdx
+
+    push rbx
+    push -1
+    mul
+    pop rcx
+    push rcx
+
+    add
+
+    push 2
+    push rax
+    mul
+    pop rax
+    push rax
+
+    div
+
+    out
+
+    push rcx
+
+    push rdx
+
+    sub
+    push rax
+
+    div
+
+    out
+    jmp halt
+
+; Linear equation case
+Linear:
+    push rbx
+    push 0
+    je halt ; if b == 0
+
+    push 0
+    push rcx
+    sub
+
+    push rbx
+    div
+    out
+    jmp halt
+
+Discr: ; counting D = b^2 - 4*a*c
+    push rbx
+    push rbx
+    mul
+
+    push rax
+    push rcx
+    mul
+
+    push 4
+    mul
+
+    sub
+    pop rdx
+
+    ret
+
+halt:
+    hlt
+```
+
+</details>
