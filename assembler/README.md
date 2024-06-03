@@ -1,19 +1,11 @@
-# Процессор
-Эмулятор процессора
+# assembler
+Compiler for simplified assembler-like language. Translates the following
+commands to the bytecode compatible with my [VM_CPU](https://github.com/victorbaldin56/VM_CPU).
 
 ## Usage
-
-### Building
-This program uses a library from my previous
-project [Stack](https://github.com/victorbaldin56/Stack).
-So follow this steps to build from source code:
-1. Clone Stack repository: ```git clone https://github.com/victorbaldin56/Stack.git```
-2. Build Stack library: ```make -f Makelib```
-3. Clone the projetc's repo: ```git clone https://github.com/victorbaldin56/VM_CPU.git```
-4. In Makefile, change the ```INCLUDE_DIR```, ```LIB``` and ```L_DIR``` variables
-to your own path to the cloned Stack repo.
-5. Run ```make``` to build! The output will be placed
-to ```./build``` directory by default.
+### Build
+1. `git clone https://github.com/victorbaldin56/assembler`
+2. `make`
 
 ### Supported commands
 This virtual CPU currently
@@ -29,3 +21,7 @@ supports the entire list of the following:
 | 5            | mult         | Multiply |
 | 6            | div          | Divide; raise signal if denominator is zero |
 | 7            | sqrt         | Take a square root |
+
+
+## Support
+Created by [victorbaldin56](https://github.com/victorbaldin56)

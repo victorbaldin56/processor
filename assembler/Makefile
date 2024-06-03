@@ -21,25 +21,33 @@ BUILD_DIR = ./build
 SRC_DIRS = ./src
 SRC = $(wildcard $(SRC_DIRS)/*.cpp)
 OBJS := $(SRC:%.cpp=$(BUILD_DIR)/%.cpp.o)
-PROJ_INCLUDE = include
-INCLUDE_DIR = Stack/src  # to be changed
+INCLUDE_DIR = include  # to be changed
 # LIB = stack.a 					# to be changed
-L_DIR = Stack/build/stack.a	# to be changed
+# L_DIR = ~/Dev/Stack/build/src/	# to be changed
+VM_INCLUDE = ../include
+CODE_CTOR = ../build/src/codector.cpp.o
+CODE_DUMP = ../build/src/codedump.cpp.o
 
-EXEC = processor
+
+EXEC = asm
 
 $(BUILD_DIR)/$(EXEC): $(OBJS)
-	@$(CC) $(OBJS) $(L_DIR) $(FLAGS) -o $@ -I $(INCLUDE_DIR) -I $(PROJ_INCLUDE)
+	@$(CC) $(OBJS) $(CODE_CTOR) $(CODE_DUMP) $(FLAGS) -o $@ -I $(INCLUDE_DIR) -I $(VM_INCLUDE)
 
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	@mkdir -p $(BUILD_DIR)
 	@mkdir -p $(BUILD_DIR)/$(SRC_DIRS)
-	@$(CC) $(FLAGS) $(FLAGS) -c $< -o $@ -I $(INCLUDE_DIR) -I $(PROJ_INCLUDE)
+	@$(CC) $(FLAGS) $(FLAGS) -c $< -o $@ -I $(INCLUDE_DIR) -I $(VM_INCLUDE)
 
 .PHONY: clean
 
 clean:
 	@rm -rf $(BUILD_DIR)
 
-run:
-	@./$(BUILD_DIR)/$(EXEC) tests/test.bin
+square:
+	./$(BUILD_DIR)/$(EXEC) tests/square_solver.asm -o tests/square_solver.bin
+	../VM_CPU/build/processor tests/square_solver.bin
+
+fact:
+	./$(BUILD_DIR)/$(EXEC) tests/factorial.asm -o tests/factorial.bin
+	../VM_CPU/build/processor tests/factorial.bin
